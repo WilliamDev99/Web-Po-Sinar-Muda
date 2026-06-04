@@ -1,0 +1,321 @@
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  background-color: var(--bg-color);
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: 90px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background-color: var(--bg-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.backBtn {
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+}
+
+.headerTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary-blue);
+}
+
+/* Main Content */
+.main {
+  padding: 0 20px 20px;
+}
+
+.titleSection {
+  margin-bottom: 24px;
+}
+
+.titleSection h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.titleSection p {
+  font-size: 15px;
+  color: var(--text-gray);
+  line-height: 1.4;
+}
+
+/* Booking Card */
+.bookingCard {
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 16px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  position: relative;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--text-gray);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background-color: #FAFAFB;
+}
+
+.inputWrapper:focus-within {
+  border-color: var(--primary-blue);
+  background-color: var(--card-bg);
+}
+
+.icon {
+  color: var(--text-gray);
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.inputField {
+  flex: 1;
+  font-size: 15px;
+  color: var(--text-dark);
+  width: 100%;
+}
+
+.inputField::placeholder {
+  color: var(--text-dark);
+}
+
+.divider {
+  width: 2px;
+  height: 24px;
+  background-color: var(--border-color);
+  margin-left: 24px;
+  margin-bottom: 12px;
+}
+
+.swapBtn {
+  position: absolute;
+  right: 24px;
+  top: 92px; /* Approx position between From/To */
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  z-index: 2;
+  transition: transform 0.2s;
+}
+
+.swapBtn:active {
+  transform: scale(0.95);
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.col {
+  flex: 1;
+}
+
+.searchBtn {
+  width: 100%;
+  background-color: var(--primary-orange);
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+  padding: 16px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.searchBtn:hover, .searchBtn:active {
+  background-color: var(--primary-orange-hover);
+}
+
+/* Recent Searches */
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.clearBtn {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.recentCard {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.recentIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--highlight-blue);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
+
+.recentDetails {
+  flex: 1;
+}
+
+.recentRoute {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.recentInfo {
+  font-size: 13px;
+  color: var(--text-gray);
+}
+
+.arrowRight {
+  color: var(--text-gray);
+}
+
+/* Why Travel */
+.whyTravelGrid {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.featureCard {
+  flex: 1;
+  border-radius: 12px;
+  padding: 20px 16px;
+}
+
+.featureCard:nth-child(1) {
+  background-color: var(--light-blue-1);
+}
+
+.featureCard:nth-child(2) {
+  background-color: var(--light-blue-2);
+}
+
+.featureIcon {
+  margin-bottom: 12px;
+}
+
+.featureTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.featureCard:nth-child(1) .featureIcon,
+.featureCard:nth-child(1) .featureTitle {
+  color: var(--primary-blue);
+}
+
+.featureCard:nth-child(2) .featureIcon {
+  color: #B64E0E; /* Darker orange for contrast */
+}
+
+.featureCard:nth-child(2) .featureTitle {
+  color: #9C3D00;
+}
+
+.featureDesc {
+  font-size: 13px;
+  color: var(--text-gray);
+  line-height: 1.4;
+}
+
+/* Bottom Nav */
+.bottomNav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--card-bg);
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 16px 24px;
+  border-top: 1px solid var(--border-color);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-gray);
+  padding: 8px 16px;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.navItem.active {
+  background-color: var(--primary-orange);
+  color: white;
+}
+
+.navIcon {
+  margin-bottom: 4px;
+}
+
+.navText {
+  font-size: 12px;
+  font-weight: 500;
+}
