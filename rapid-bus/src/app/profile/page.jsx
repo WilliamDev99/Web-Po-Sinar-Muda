@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 
 // Reusable Modal Wrapper (di luar komponen utama agar tidak re-render)
@@ -63,6 +63,16 @@ export default function ProfilePage() {
   // User profile state (editable)
   const [userName, setUserName] = useState("Reitama");
   const [userEmail, setUserEmail] = useState("reitama@example.com");
+  const [profileImage, setProfileImage] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setProfileImage(imageUrl);
+    }
+  };
   const [userPhone, setUserPhone] = useState("+62 812-3456-7890");
   const [userPassword, setUserPassword] = useState("");
   const [userNewPassword, setUserNewPassword] = useState("");
@@ -158,13 +168,25 @@ export default function ProfilePage() {
           <div className="relative mb-5">
             <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#1f75b8] to-[#60a5fa] p-1 shadow-lg relative z-10">
                <div className="w-full h-full rounded-full bg-white flex items-center justify-center border-[3px] border-white overflow-hidden">
-                 <span className="text-4xl font-bold text-[#1f75b8]">{userName.charAt(0).toUpperCase()}</span>
+                 {profileImage ? (
+                   <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                 ) : (
+                   <span className="text-4xl font-bold text-[#1f75b8]">{userName.charAt(0).toUpperCase()}</span>
+                 )}
                </div>
             </div>
             {/* Edit Button */}
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleImageChange} 
+            />
             <button 
-              onClick={() => setActiveModal('akun')}
+              onClick={() => fileInputRef.current.click()}
               className="absolute bottom-0 right-0 bg-white border border-gray-100 shadow-md w-8 h-8 rounded-full flex items-center justify-center text-[#1f75b8] hover:scale-110 hover:bg-gray-50 active:scale-95 transition-all z-20"
+              title="Ganti Foto Profil"
             >
               <span className="material-symbols-outlined text-[16px]">edit</span>
             </button>
