@@ -1,4 +1,5 @@
 import "./globals.css";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 export const metadata = {
   title: "RapidBus - Book intercity travel",
@@ -13,9 +14,11 @@ export default function RootLayout({ children }) {
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&display=swap" rel="stylesheet" />
       </head>
       <body className="bg-mesh min-h-screen text-on-surface font-body-md pb-20">
-        <div className="overflow-x-hidden min-h-screen">
-          {children}
-        </div>
+        <LanguageProvider>
+          <div className="overflow-x-hidden min-h-screen">
+            {children}
+          </div>
+        </LanguageProvider>
       </body>
     </html>
   );

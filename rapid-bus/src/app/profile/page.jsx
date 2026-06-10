@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
 
 // Reusable Modal Wrapper (di luar komponen utama agar tidak re-render)
 const ModalWrapper = ({ title, children, onClose }) => (
@@ -22,10 +23,10 @@ const ModalWrapper = ({ title, children, onClose }) => (
 );
 
 // Success Toast
-const SuccessToast = () => (
+const SuccessToast = ({ t }) => (
   <div className="fixed top-28 left-1/2 -translate-x-1/2 z-[200] bg-green-500 text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2 font-bold text-sm animate-in fade-in slide-in-from-top duration-300">
     <span className="material-symbols-outlined text-[20px]">check_circle</span>
-    Berhasil disimpan!
+    {t('saveSuccess')}
   </div>
 );
 
@@ -60,6 +61,8 @@ const Toggle = ({ label, desc, checked, onChange }) => (
 );
 
 export default function ProfilePage() {
+  const { language, setLanguage, t } = useLanguage();
+  
   // User profile state (editable)
   const [userName, setUserName] = useState("Reitama");
   const [userEmail, setUserEmail] = useState("reitama@example.com");
@@ -79,7 +82,6 @@ export default function ProfilePage() {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-
   // Transaction history
   const transactions = [
     { id: "TRX-20260528-001", date: "28 Mei 2026", route: "Makassar → Toraja", operator: "Sinar Muda", seats: "A1, A2", total: "Rp 460.000", status: "Selesai" },
@@ -88,20 +90,18 @@ export default function ProfilePage() {
   ];
 
   // Notification settings state
-
   const [notifBooking, setNotifBooking] = useState(true);
   const [notifReminder, setNotifReminder] = useState(false);
-  const [language, setLanguage] = useState("id");
 
   // Active modal state
   const [activeModal, setActiveModal] = useState(null); // 'akun' | 'riwayat' | 'bantuan' | 'pengaturan' | 'logout' | null
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 
   const menuItems = [
-    { id: "akun", icon: "account_circle", label: "Informasi Akun", desc: "Ubah data diri dan kata sandi" },
-    { id: "riwayat", icon: "receipt_long", label: "Riwayat Transaksi", desc: "Lihat semua transaksi sebelumnya" },
-    { id: "bantuan", icon: "help_center", label: "Pusat Bantuan", desc: "Hubungi customer service kami" },
-    { id: "pengaturan", icon: "settings", label: "Pengaturan", desc: "Pengaturan notifikasi dan bahasa" }
+    { id: "akun", icon: "account_circle", label: t('menuAccount'), desc: t('menuAccountDesc') },
+    { id: "riwayat", icon: "receipt_long", label: t('menuHistory'), desc: t('menuHistoryDesc') },
+    { id: "bantuan", icon: "help_center", label: t('menuHelp'), desc: t('menuHelpDesc') },
+    { id: "pengaturan", icon: "settings", label: t('menuSettings'), desc: t('menuSettingsDesc') }
   ];
 
   const handleSave = () => {
@@ -111,9 +111,6 @@ export default function ProfilePage() {
       setActiveModal(null);
     }, 1500);
   };
-
-
-
 
   return (
     <>
@@ -138,15 +135,15 @@ export default function ProfilePage() {
         <nav className="hidden md:flex items-center gap-8">
           <Link href="/" className="text-[#1f75b8]/80 hover:text-[#1f75b8] font-semibold flex items-center gap-2 transition-colors">
             <span className="material-symbols-outlined text-[20px]">home</span>
-            Beranda
+            {t('navHome')}
           </Link>
           <Link href="/tickets" className="text-[#1f75b8]/80 hover:text-[#1f75b8] font-semibold flex items-center gap-2 transition-colors">
             <span className="material-symbols-outlined text-[20px]">confirmation_number</span>
-            Tiketku
+            {t('navTickets')}
           </Link>
           <Link href="/profile" className="text-[#1f75b8] font-semibold flex items-center gap-2 hover:text-[#1f75b8]/80 transition-colors">
             <span className="material-symbols-outlined text-[20px]" style={{fontVariationSettings: "'FILL' 1"}}>person</span>
-            Profil
+            {t('navProfile')}
           </Link>
         </nav>
       </header>
@@ -157,7 +154,7 @@ export default function ProfilePage() {
       <main className="pt-32 pb-32 md:pb-16 px-4 md:px-10 max-w-lg md:max-w-4xl mx-auto relative z-10 flex flex-col gap-6">
         
         {/* Header Title */}
-        <h2 className="text-3xl font-bold text-white text-center md:text-left mb-2 md:mb-6 drop-shadow-sm">Profil Saya</h2>
+        <h2 className="text-3xl font-bold text-white text-center md:text-left mb-2 md:mb-6 drop-shadow-sm">{t('title')}</h2>
 
         {/* Profile Card */}
         <div className="bg-white/95 backdrop-blur-md rounded-[28px] p-6 md:p-8 shadow-[0_15px_40px_rgba(0,0,0,0.1)] border border-white/40 flex flex-col items-center text-center relative overflow-hidden group">
@@ -228,7 +225,7 @@ export default function ProfilePage() {
           className="bg-white/95 backdrop-blur-md rounded-[24px] p-5 shadow-[0_15px_40px_rgba(0,0,0,0.1)] border border-white/40 flex items-center justify-center gap-3 text-red-500 hover:bg-red-50 active:scale-[0.98] transition-all font-bold"
         >
           <span className="material-symbols-outlined text-[22px]">logout</span>
-          Keluar
+          {t('logout')}
         </button>
 
       </main>
@@ -236,25 +233,25 @@ export default function ProfilePage() {
       {/* ========== MODALS ========== */}
 
       {/* Success Toast */}
-      {showSaveSuccess && <SuccessToast />}
+      {showSaveSuccess && <SuccessToast t={t} />}
 
       {/* 1. Informasi Akun Modal */}
       {activeModal === 'akun' && (
-        <ModalWrapper title="Informasi Akun" onClose={() => setActiveModal(null)}>
+        <ModalWrapper title={t('menuAccount')} onClose={() => setActiveModal(null)}>
           <div className="flex flex-col gap-4">
-            <FormInput label="Nama Lengkap" value={userName} onChange={setUserName} />
-            <FormInput label="Email" value={userEmail} onChange={setUserEmail} type="email" />
-            <FormInput label="Nomor HP" value={userPhone} onChange={setUserPhone} type="tel" />
+            <FormInput label={t('fullName')} value={userName} onChange={setUserName} />
+            <FormInput label={t('email')} value={userEmail} onChange={setUserEmail} type="email" />
+            <FormInput label={t('phone')} value={userPhone} onChange={setUserPhone} type="tel" />
             <hr className="border-gray-100 my-2" />
-            <h4 className="font-bold text-gray-700 text-sm">Ubah Kata Sandi</h4>
+            <h4 className="font-bold text-gray-700 text-sm">{t('changePassword')}</h4>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Kata Sandi Lama</label>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('oldPassword')}</label>
               <div className="relative">
                 <input
                   type={showOldPassword ? "text" : "password"}
                   value={userPassword}
                   onChange={(e) => setUserPassword(e.target.value)}
-                  placeholder="Masukkan kata sandi lama"
+                  placeholder={t('phOldPassword')}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 text-gray-800 font-medium text-sm outline-none focus:border-[#1f75b8] focus:ring-2 focus:ring-[#1f75b8]/20 transition-all"
                 />
                 <button type="button" onClick={() => setShowOldPassword(!showOldPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#1f75b8] transition-colors p-1">
@@ -263,13 +260,13 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Kata Sandi Baru</label>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('newPassword')}</label>
               <div className="relative">
                 <input
                   type={showNewPassword ? "text" : "password"}
                   value={userNewPassword}
                   onChange={(e) => setUserNewPassword(e.target.value)}
-                  placeholder="Masukkan kata sandi baru"
+                  placeholder={t('phNewPassword')}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 text-gray-800 font-medium text-sm outline-none focus:border-[#1f75b8] focus:ring-2 focus:ring-[#1f75b8]/20 transition-all"
                 />
                 <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#1f75b8] transition-colors p-1">
@@ -281,7 +278,7 @@ export default function ProfilePage() {
               onClick={handleSave}
               className="mt-4 w-full bg-[#1f75b8] hover:bg-[#19619c] text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm"
             >
-              Simpan Perubahan
+              {t('saveChanges')}
             </button>
           </div>
         </ModalWrapper>
@@ -290,7 +287,7 @@ export default function ProfilePage() {
 
       {/* 3. Riwayat Transaksi Modal */}
       {activeModal === 'riwayat' && (
-        <ModalWrapper title="Riwayat Transaksi" onClose={() => setActiveModal(null)}>
+        <ModalWrapper title={t('menuHistory')} onClose={() => setActiveModal(null)}>
           <div className="flex flex-col gap-4">
             {transactions.map((tx) => (
               <div key={tx.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
@@ -300,17 +297,17 @@ export default function ProfilePage() {
                     <span className="text-xs text-gray-500">{tx.date} · {tx.operator}</span>
                   </div>
                   <span className={`text-xs font-bold px-3 py-1 rounded-full ${tx.status === 'Selesai' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                    {tx.status}
+                    {tx.status === 'Selesai' ? t('done') : t('cancelled')}
                   </span>
                 </div>
                 <div className="flex justify-between items-center pt-3 border-t border-gray-200/60">
                   <div className="flex items-center gap-4">
                     <div className="flex flex-col">
-                      <span className="text-[10px] text-gray-400 font-medium uppercase">Kursi</span>
+                      <span className="text-[10px] text-gray-400 font-medium uppercase">{t('seat')}</span>
                       <span className="text-sm font-bold text-gray-700">{tx.seats}</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] text-gray-400 font-medium uppercase">ID</span>
+                      <span className="text-[10px] text-gray-400 font-medium uppercase">{t('trxId')}</span>
                       <span className="text-xs font-mono text-gray-500">{tx.id}</span>
                     </div>
                   </div>
@@ -324,12 +321,12 @@ export default function ProfilePage() {
 
       {/* 4. Pusat Bantuan Modal */}
       {activeModal === 'bantuan' && (
-        <ModalWrapper title="Pusat Bantuan" onClose={() => setActiveModal(null)}>
+        <ModalWrapper title={t('menuHelp')} onClose={() => setActiveModal(null)}>
           <div className="flex flex-col gap-5">
-            <p className="text-sm text-gray-600 leading-relaxed">Jika Anda memiliki pertanyaan atau kendala, silakan hubungi kami melalui salah satu cara di bawah ini:</p>
+            <p className="text-sm text-gray-600 leading-relaxed">{t('helpDesc')}</p>
             
             <div className="flex flex-col gap-3">
-              <h4 className="font-bold text-gray-800 text-sm">WhatsApp Admin</h4>
+              <h4 className="font-bold text-gray-800 text-sm">{t('waAdmin')}</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 pb-2">
                 {[
                   { name: 'Admin Makassar', number: '081241527132', wa: '6281241527132' },
@@ -369,13 +366,13 @@ export default function ProfilePage() {
 
 
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex flex-col gap-2">
-              <h4 className="font-bold text-gray-800 text-sm">Jam Operasional</h4>
+              <h4 className="font-bold text-gray-800 text-sm">{t('operationalHours')}</h4>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Senin - Sabtu</span>
+                <span className="text-gray-500">{t('monSat')}</span>
                 <span className="font-semibold text-gray-700">07:00 - 21:00 WITA</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Minggu & Libur</span>
+                <span className="text-gray-500">{t('sunHol')}</span>
                 <span className="font-semibold text-gray-700">08:00 - 17:00 WITA</span>
               </div>
             </div>
@@ -385,16 +382,16 @@ export default function ProfilePage() {
 
       {/* 5. Pengaturan Modal */}
       {activeModal === 'pengaturan' && (
-        <ModalWrapper title="Pengaturan" onClose={() => setActiveModal(null)}>
+        <ModalWrapper title={t('menuSettings')} onClose={() => setActiveModal(null)}>
           <div className="flex flex-col gap-2">
-            <h4 className="font-bold text-gray-700 text-sm mb-1">Notifikasi</h4>
+            <h4 className="font-bold text-gray-700 text-sm mb-1">{t('notifications')}</h4>
 
-            <Toggle label="Status Pemesanan" desc="Update status tiket Anda" checked={notifBooking} onChange={setNotifBooking} />
-            <Toggle label="Pengingat Keberangkatan" desc="Notifikasi H-1 keberangkatan" checked={notifReminder} onChange={setNotifReminder} />
+            <Toggle label={t('bookingStatus')} desc={t('bookingStatusDesc')} checked={notifBooking} onChange={setNotifBooking} />
+            <Toggle label={t('departureReminder')} desc={t('departureReminderDesc')} checked={notifReminder} onChange={setNotifReminder} />
             
             <hr className="border-gray-100 my-3" />
             
-            <h4 className="font-bold text-gray-700 text-sm mb-2">Bahasa</h4>
+            <h4 className="font-bold text-gray-700 text-sm mb-2">{t('language')}</h4>
             <div className="flex gap-3">
               <button 
                 onClick={() => setLanguage("id")}
@@ -414,7 +411,7 @@ export default function ProfilePage() {
               onClick={handleSave}
               className="mt-6 w-full bg-[#1f75b8] hover:bg-[#19619c] text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm"
             >
-              Simpan Pengaturan
+              {t('saveSettings')}
             </button>
           </div>
         </ModalWrapper>
@@ -428,20 +425,20 @@ export default function ProfilePage() {
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-red-500 mb-5">
               <span className="material-symbols-outlined text-[32px]">logout</span>
             </div>
-            <h3 className="font-bold text-xl text-gray-800 mb-2">Keluar dari Akun?</h3>
-            <p className="text-sm text-gray-500 mb-6">Anda yakin ingin keluar dari akun Anda? Anda perlu masuk kembali untuk mengakses fitur yang tersedia.</p>
+            <h3 className="font-bold text-xl text-gray-800 mb-2">{t('logoutConfirm')}</h3>
+            <p className="text-sm text-gray-500 mb-6">{t('logoutDesc')}</p>
             <div className="flex gap-3 w-full">
               <button 
                 onClick={() => setActiveModal(null)}
                 className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors"
               >
-                Batal
+                {t('cancel')}
               </button>
               <button 
                 onClick={() => { setActiveModal(null); /* Could redirect to login page */ }}
                 className="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm transition-colors"
               >
-                Ya, Keluar
+                {t('yesLogout')}
               </button>
             </div>
           </div>
@@ -453,17 +450,17 @@ export default function ProfilePage() {
         {/* Home */}
         <Link className="flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-gray-700 px-5 py-2 active:scale-95 transition-all duration-300" href="/">
           <span className="material-symbols-outlined transition-transform hover:-translate-y-1 duration-300">home</span>
-          <span className="text-[11px] font-medium">Beranda</span>
+          <span className="text-[11px] font-medium">{t('navHome')}</span>
         </Link>
         {/* My Bookings */}
         <Link className="flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-gray-700 px-5 py-2 active:scale-95 transition-all duration-300" href="/tickets">
           <span className="material-symbols-outlined transition-transform hover:-translate-y-1 duration-300">confirmation_number</span>
-          <span className="text-[11px] font-medium">Tiketku</span>
+          <span className="text-[11px] font-medium">{t('navTickets')}</span>
         </Link>
         {/* Profile (Active) */}
         <Link className="flex flex-col items-center justify-center gap-1 bg-[#a3d1ff]/10 text-[#1f75b8] rounded-2xl px-5 py-2 hover:bg-[#a3d1ff]/20 active:scale-95 transition-all duration-300" href="/profile">
           <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>person</span>
-          <span className="text-[11px] font-bold">Profil</span>
+          <span className="text-[11px] font-bold">{t('navProfile')}</span>
         </Link>
       </nav>
     </>

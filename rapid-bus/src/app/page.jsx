@@ -2,15 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
+import HeaderDropdown from '@/components/HeaderDropdown';
 
 export default function Home() {
+  const { t } = useLanguage();
   const [from, setFrom] = useState('Makassar');
   const [to, setTo] = useState('Toraja');
   const [isSwapping, setIsSwapping] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [typedText, setTypedText] = useState("");
-  const fullText = "Mau ke mana hari ini?";
+  const fullText = t('heroQuestion');
 
   const posters = [
     "/poster/Screenshot 2026-05-31 204637.png",
@@ -59,11 +62,13 @@ export default function Home() {
     let i = 0;
     let isDeleting = false;
     let timeoutId;
+    // ensure text uses updated translation
+    const currentFullText = fullText;
 
     const type = () => {
       if (!isDeleting) {
-        if (i < fullText.length) {
-          setTypedText(fullText.substring(0, i + 1));
+        if (i < currentFullText.length) {
+          setTypedText(currentFullText.substring(0, i + 1));
           i++;
           timeoutId = setTimeout(type, 80); // kecepatan mengetik
         } else {
@@ -72,7 +77,7 @@ export default function Home() {
         }
       } else {
         if (i > 0) {
-          setTypedText(fullText.substring(0, i - 1));
+          setTypedText(currentFullText.substring(0, i - 1));
           i--;
           timeoutId = setTimeout(type, 40); // kecepatan menghapus (lebih cepat)
         } else {
@@ -85,7 +90,7 @@ export default function Home() {
     timeoutId = setTimeout(type, 500); // jeda awal sebelum animasi mulai
 
     return () => clearTimeout(timeoutId);
-  }, []);
+  }, [fullText]);
 
   const handleSwap = () => {
     setRotation(prev => prev + 180);
@@ -119,17 +124,21 @@ export default function Home() {
         <nav className="hidden md:flex items-center gap-8">
           <a href="#" className="text-[#1f75b8] font-semibold flex items-center gap-2 transition-colors">
             <span className="material-symbols-outlined text-[20px]" style={{fontVariationSettings: "'FILL' 1"}}>home</span>
-            Beranda
+            {t('navHome')}
           </a>
           <Link href="/tickets" className="text-[#1f75b8]/80 hover:text-[#1f75b8] font-semibold flex items-center gap-2 transition-colors">
             <span className="material-symbols-outlined text-[20px]">confirmation_number</span>
-            Tiketku
+            {t('navTickets')}
           </Link>
           <Link href="/profile" className="text-[#1f75b8]/80 hover:text-[#1f75b8] font-semibold flex items-center gap-2 transition-colors">
             <span className="material-symbols-outlined text-[20px]">person</span>
-            Profil
+            {t('navProfile')}
           </Link>
         </nav>
+        
+        {/* Dropdown Menu (Visible on all sizes) */}
+        <div className="md:hidden ml-auto"></div>
+        <HeaderDropdown />
       </header>
       
       {/* Subtle Background Glow behind main content */}
@@ -224,7 +233,7 @@ export default function Home() {
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70">{typedText}</span>
             <span className="animate-pulse text-white font-light ml-1 relative -top-1">|</span>
           </h2>
-          <p className="text-white/80 font-medium text-sm md:text-lg">Pesan tiket perjalanan antar kota Anda dengan cepat dan mudah.</p>
+          <p className="text-white/80 font-medium text-sm md:text-lg">{t('heroSubtitle')}</p>
         </div>
         
         {/* Search Card with Premium Shadow and rounded corners */}
@@ -254,12 +263,12 @@ export default function Home() {
               
               {/* From Field */}
               <div className="flex flex-col w-full">
-                <label className="text-xs font-semibold text-gray-500 mb-1.5 ml-1 tracking-wide uppercase">Kota Asal</label>
+                <label className="text-xs font-semibold text-gray-500 mb-1.5 ml-1 tracking-wide uppercase">{t('fromCity')}</label>
                 <div className="relative group">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1f75b8] transition-colors">location_on</span>
                   <input 
                     className="clay-input w-full pl-11 pr-14 md:pr-14 py-3.5 md:py-4 text-gray-800 font-medium md:text-base outline-none" 
-                    placeholder="Masukkan kota asal" 
+                    placeholder={t('phFromCity')} 
                     type="text" 
                     value={from}
                     onChange={(e) => setFrom(e.target.value)}
@@ -272,12 +281,12 @@ export default function Home() {
               
               {/* To Field */}
               <div className="flex flex-col w-full">
-                <label className="text-xs font-semibold text-gray-500 mb-1.5 ml-1 tracking-wide uppercase md:invisible">Kota Tujuan</label>
+                <label className="text-xs font-semibold text-gray-500 mb-1.5 ml-1 tracking-wide uppercase md:invisible">{t('toCity')}</label>
                 <div className="relative group">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1f75b8] transition-colors">near_me</span>
                   <input 
                     className="clay-input w-full pl-11 pr-14 md:pr-14 py-3.5 md:py-4 text-gray-800 font-medium md:text-base outline-none" 
-                    placeholder="Masukkan kota tujuan" 
+                    placeholder={t('phToCity')} 
                     type="text" 
                     value={to}
                     onChange={(e) => setTo(e.target.value)}
@@ -288,7 +297,7 @@ export default function Home() {
             
             {/* Date Picker (Kiri Bawah) */}
             <div className="flex flex-col w-full mt-2 md:mt-0">
-              <label className="text-xs font-semibold text-gray-500 mb-1.5 ml-1 tracking-wide uppercase">Tanggal</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5 ml-1 tracking-wide uppercase">{t('date')}</label>
               <div className="relative group">
                 <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1f75b8] transition-colors text-[20px]">calendar_today</span>
                 <input 
@@ -303,7 +312,7 @@ export default function Home() {
             {/* Search Button (Kanan Bawah) */}
             <div className="w-full">
               <Link href={`/search?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${date}`} className="clay-primary w-full mt-6 md:mt-0 font-semibold text-lg md:text-base py-4 md:py-4 md:px-8 flex justify-center items-center gap-2 text-center h-[52px] md:h-[58px] text-white">
-                Cari
+                {t('search')}
                 <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
               </Link>
             </div>
@@ -315,8 +324,8 @@ export default function Home() {
           {/* Recent Searches Section */}
           <div>
             <div className="flex justify-between items-end mb-4">
-              <h3 className="font-semibold text-lg md:text-xl text-white">Pencarian Terakhir</h3>
-              <button className="text-white/80 hover:text-white font-medium text-xs uppercase tracking-wider transition-colors">Hapus Semua</button>
+              <h3 className="font-semibold text-lg md:text-xl text-white">{t('recentSearches')}</h3>
+              <button className="text-white/80 hover:text-white font-medium text-xs uppercase tracking-wider transition-colors">{t('clearAll')}</button>
             </div>
             <div className="grid grid-cols-1 gap-3">
               {/* Recent Search Card */}
@@ -326,7 +335,7 @@ export default function Home() {
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-gray-900 text-base md:text-lg">Makassar → Toraja</p>
-                  <p className="text-gray-500 text-xs md:text-sm font-medium mt-0.5">Hari Ini • 1 Penumpang</p>
+                  <p className="text-gray-500 text-xs md:text-sm font-medium mt-0.5">{t('today1Passenger')}</p>
                 </div>
                 <span className="material-symbols-outlined text-gray-300 group-hover:text-[#1f75b8] group-hover:translate-x-1 transition-all duration-300">chevron_right</span>
               </div>
@@ -335,7 +344,7 @@ export default function Home() {
           
           {/* Social Media Section */}
           <div>
-            <h3 className="font-semibold text-lg md:text-xl text-white mb-4">Ikuti Media Sosial Kami</h3>
+            <h3 className="font-semibold text-lg md:text-xl text-white mb-4">{t('followUs')}</h3>
             <div className="flex flex-col gap-3">
               <a href="https://www.instagram.com/po_sinarmuda.id?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" className="clay-feature p-4 flex items-center gap-4 group cursor-pointer hover:-translate-y-1 transition-transform">
                 <div className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center group-hover:bg-pink-100 transition-colors">
@@ -385,17 +394,17 @@ export default function Home() {
         {/* Home (Active) */}
         <a className="flex flex-col items-center justify-center gap-1 bg-[#a3d1ff]/10 text-[#1f75b8] rounded-2xl px-5 py-2 hover:bg-[#a3d1ff]/20 active:scale-95 transition-all duration-300" href="#">
           <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>home</span>
-          <span className="text-[11px] font-bold">Beranda</span>
+          <span className="text-[11px] font-bold">{t('navHome')}</span>
         </a>
         {/* My Bookings */}
         <Link className="flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-gray-700 px-5 py-2 active:scale-95 transition-all duration-300" href="/tickets">
           <span className="material-symbols-outlined transition-transform hover:-translate-y-1 duration-300">confirmation_number</span>
-          <span className="text-[11px] font-medium">Tiketku</span>
+          <span className="text-[11px] font-medium">{t('navTickets')}</span>
         </Link>
         {/* Profile */}
         <Link className="flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-gray-700 px-5 py-2 active:scale-95 transition-all duration-300" href="/profile">
           <span className="material-symbols-outlined transition-transform hover:-translate-y-1 duration-300">person</span>
-          <span className="text-[11px] font-medium">Profil</span>
+          <span className="text-[11px] font-medium">{t('navProfile')}</span>
         </Link>
       </nav>
     </>

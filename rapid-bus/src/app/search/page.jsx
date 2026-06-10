@@ -3,7 +3,7 @@
 import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { tickets } from '../../data/tickets';
+import { supabase } from '@/utils/supabase';
 
 function SearchResults() {
   const router = useRouter();
@@ -23,6 +23,109 @@ function SearchResults() {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [showCheckout, setShowCheckout] = useState(false);
   
+  const [dbTickets, setDbTickets] = useState([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  React.useEffect(() => {
+    async function fetchJadwal() {
+      setIsLoadingTickets(true);
+      setErrorMessage(null);
+      try {
+        const { data, error } = await supabase
+          .from('jadwal')
+          .select(`
+            id,
+            tanggal_berangkat,
+            waktu_berangkat,
+            waktu_tiba,
+            harga_tiket,
+            rute!inner (kota_asal, kota_tujuan, estimasi_waktu),
+            armada!inner (nama_kelas, total_kursi, fasilitas)
+          `)
+          .ilike('rute.kota_asal', `%${from}%`)
+          .ilike('rute.kota_tujuan', `%${to}%`);
+        
+        if (error) {
+          throw new Error(error.message || JSON.stringify(error));
+        }
+        
+        if (data) {
+          const getAbbr = (city) => {
+            const map = {
+              'makassar': 'MKS',
+              'toraja': 'TRJ',
+              'masamba': 'MSB',
+              'palopo': 'PLP',
+              'soroako': 'SRK'
+            };
+            return map[city.toLowerCase()] || city.substring(0, 3).toUpperCase();
+          };
+
+          const formatted = data.map(j => {
+            const asal = getAbbr(j.rute.kota_asal);
+            const tujuan = getAbbr(j.rute.kota_tujuan);
+            const kelas = j.armada.nama_kelas.toUpperCase().replace('KELAS ', '');
+            // Generate dummy plate number based on ID
+            const plateNum = parseInt(j.id.substring(0, 8), 16) % 9000 + 1000;
+            const plate = `DD ${plateNum} SM`;
+
+            // Gunakan waktu_tiba dari database jika ada, fallback ke kalkulasi
+            let arrivalTime = '';
+            const durationStr = j.rute.estimasi_waktu || "";
+            if (j.waktu_tiba) {
+              arrivalTime = j.waktu_tiba.substring(0, 5);
+            } else {
+              // Fallback: hitung dari durasi rute
+              let durHours = 0;
+              let durMinutes = 0;
+              const hourMatch = durationStr.match(/(\d+)\s*jam/i);
+              if (hourMatch) durHours = parseInt(hourMatch[1], 10);
+              const minMatch = durationStr.match(/(\d+)\s*menit/i);
+              if (minMatch) durMinutes = parseInt(minMatch[1], 10);
+              if (durHours === 0 && durMinutes === 0) durHours = 10;
+              const depHour = parseInt((j.waktu_berangkat || "20:00").split(':')[0], 10);
+              const depMin = parseInt((j.waktu_berangkat || "20:00").split(':')[1], 10);
+              let totalMin = depMin + durMinutes;
+              let extraHour = Math.floor(totalMin / 60);
+              let finalMin = totalMin % 60;
+              let totalHour = depHour + durHours + extraHour;
+              let finalHour = totalHour % 24;
+              arrivalTime = `${finalHour.toString().padStart(2, '0')}:${finalMin.toString().padStart(2, '0')}`;
+            }
+
+            return {
+              id: j.id,
+              operator: `${asal}-${tujuan} ${kelas} - ${plate}`,
+              busType: "PO Sinar Muda",
+              departure: j.waktu_berangkat.substring(0, 5),
+              arrival: arrivalTime,
+              duration: durationStr,
+              seats: j.armada.total_kursi,
+              price: `Rp ${Number(j.harga_tiket).toLocaleString('id-ID')}`,
+              capacity: j.armada.total_kursi,
+              seatFormat: j.armada.nama_kelas.includes('President') ? "1 - 1" : "2 - 2",
+              amenities: j.armada.fasilitas.map(f => ({
+                name: f,
+                icon: f.toLowerCase().includes('ac') ? 'ac_unit' : f.toLowerCase().includes('makan') ? 'restaurant' : 'check_circle'
+              })),
+              ticketClasses: [
+                { name: j.armada.nama_kelas, price: `Rp ${Number(j.harga_tiket).toLocaleString('id-ID')}` }
+              ]
+            };
+          });
+          setDbTickets(formatted);
+        }
+      } catch (err) {
+        console.error("Fetch Error:", err);
+        setErrorMessage(err.message || String(err));
+      } finally {
+        setIsLoadingTickets(false);
+      }
+    }
+    fetchJadwal();
+  }, [from, to]);
+
   // State untuk Drag to Scroll (Date Picker)
   const scrollRef = React.useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -217,11 +320,20 @@ function SearchResults() {
           {/* Results List */}
           <div className="flex flex-col w-full">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold text-lg md:text-xl text-white">Tersedia {tickets.length} Jadwal</h3>
+              <h3 className="font-semibold text-lg md:text-xl text-white">Tersedia {dbTickets.length} Jadwal</h3>
             </div>
 
             <div className="flex flex-col gap-4 md:gap-5">
-              {tickets.map((ticket) => (
+              {errorMessage ? (
+                <div className="bg-red-500 text-white text-center py-6 px-4 rounded-xl font-bold">
+                  Terjadi Kesalahan Koneksi Database:<br/>
+                  <span className="text-sm font-normal font-mono">{errorMessage}</span>
+                </div>
+              ) : isLoadingTickets ? (
+                <div className="text-white text-center py-10">Mencari jadwal dari database...</div>
+              ) : dbTickets.length === 0 ? (
+                <div className="text-white text-center py-10">Tidak ada jadwal ditemukan untuk rute ini.</div>
+              ) : dbTickets.map((ticket) => (
                 <div key={ticket.id} className="clay-card p-4 md:p-6">
                   {/* Desktop Layout Wrapper */}
                   <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -251,26 +363,34 @@ function SearchResults() {
                     </div>
                     
                     {/* Time & Route */}
-                    <div className="flex justify-between items-center relative md:flex-1 md:px-4">
-                      <div className="flex flex-col items-center w-1/4">
-                        <span className="text-[10px] md:text-xs text-gray-500 font-bold tracking-wider mb-0.5">WITA</span>
-                        <span className="font-bold text-lg md:text-xl text-gray-900 leading-none">{ticket.departure}</span>
-                        <span className="text-xs md:text-sm text-gray-400 font-medium text-center mt-1">{from.split(" ")[0]}</span>
+                    <div className="flex justify-between items-center bg-[#f8f9fc] rounded-xl px-4 py-3 md:flex-1 md:mx-2 w-full md:w-auto relative">
+                      <div className="flex flex-col items-start w-[80px] md:w-[90px]">
+                        <span className="text-[13px] md:text-sm text-gray-500 mb-1">{from.split(" ")[0]}</span>
+                        <span className="font-bold text-[19px] md:text-[22px] text-[#1f3b64] leading-none">{ticket.departure.replace(':', '.')}</span>
+                        <span className="text-[13px] md:text-[15px] font-bold text-[#1f3b64] mt-1">WITA</span>
                       </div>
                       
-                      <div className="flex-1 flex flex-col items-center justify-center relative px-2">
-                        <div className="w-full border-t-2 border-dashed border-gray-200 relative mb-1">
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[#1f75b8] text-[20px] md:text-[24px]">directions_bus</span>
+                      <div className="flex-1 flex flex-col items-center justify-center px-1">
+                        <div className="flex items-center w-full justify-center gap-1 md:gap-2">
+                          <div className="h-[1px] bg-indigo-200/60 w-6 md:w-8"></div>
+                          <div className="flex flex-col items-center text-[#2b4c7e] leading-tight">
+                            <span className="text-[12px] md:text-[13px] font-medium whitespace-nowrap">
+                              {ticket.duration.toLowerCase().includes('menit') 
+                                ? ticket.duration.replace(/jam/i, 'jam').replace(/menit/i, '').trim() 
+                                : ticket.duration}
+                            </span>
+                            {ticket.duration.toLowerCase().includes('menit') && (
+                              <span className="text-[12px] md:text-[13px] font-medium">menit</span>
+                            )}
                           </div>
+                          <div className="h-[1px] bg-indigo-200/60 w-6 md:w-8"></div>
                         </div>
-                        <span className="text-xs md:text-sm font-bold text-[#1f75b8] bg-orange-50 px-3 py-1 rounded-full mt-1 border border-orange-100">{ticket.duration}</span>
                       </div>
 
-                      <div className="flex flex-col items-center w-1/4">
-                        <span className="text-[10px] md:text-xs text-gray-500 font-bold tracking-wider mb-0.5">WITA</span>
-                        <span className="font-bold text-lg md:text-xl text-gray-900 leading-none">{ticket.arrival}</span>
-                        <span className="text-xs md:text-sm text-gray-400 font-medium text-center mt-1">{to.split(" ")[0]}</span>
+                      <div className="flex flex-col items-start w-[80px] md:w-[90px]">
+                        <span className="text-[13px] md:text-sm text-gray-500 mb-1">{to.split(" ")[0]}</span>
+                        <span className="font-bold text-[19px] md:text-[22px] text-[#1f3b64] leading-none">{ticket.arrival.replace(':', '.')}</span>
+                        <span className="text-[13px] md:text-[15px] font-bold text-[#1f3b64] mt-1">WITA</span>
                       </div>
                     </div>
                     
