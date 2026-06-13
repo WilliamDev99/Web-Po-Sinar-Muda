@@ -119,14 +119,19 @@ export default function MyTicketsPage() {
   const formatPrice = (num) =>
     `Rp ${Number(num).toLocaleString("id-ID").replace(/,/g, ".")}`;
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  // Dapatkan tanggal dan waktu saat ini di Zona Waktu WITA (Asia/Makassar)
+  const todayWitaStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Makassar', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const timeWitaStr = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Makassar', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date());
 
   // Map database tickets to UI format
   const mappedTickets = dbTickets.map(ticket => {
-    // Jika tiket baru saja dibuat hari ini, tampilkan di "Tiket Aktif" untuk memudahkan pengujian/testing
-    const createdDateStr = ticket.created_at ? new Date(ticket.created_at).toISOString().split('T')[0] : '';
-    const isCreatedToday = createdDateStr === todayStr;
-    const isPast = ticket.jadwal.tanggal_berangkat < todayStr && !isCreatedToday;
+    // Logika otomatis: Tiket dianggap selesai (isPast = true) jika:
+    // 1. Tanggal keberangkatan sudah lewat dari hari ini (WITA)
+    // 2. Tanggal keberangkatan adalah hari ini, dan waktu keberangkatan sudah lewat (WITA)
+    const isPastDate = ticket.jadwal.tanggal_berangkat < todayWitaStr;
+    const isToday = ticket.jadwal.tanggal_berangkat === todayWitaStr;
+    const isPastTime = isToday && (ticket.jadwal.waktu_berangkat < timeWitaStr);
+    const isPast = isPastDate || isPastTime;
     
     let statusText = "";
     if (ticket.status === "Dibatalkan") {
