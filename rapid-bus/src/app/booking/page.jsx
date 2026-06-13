@@ -320,7 +320,6 @@ function BookingContent() {
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
 
   // State untuk data pelanggan
-  const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
 
@@ -925,16 +924,6 @@ function BookingContent() {
                 </div>
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium text-gray-400">Nama Pemesan:</label>
-                    <input
-                      type="text"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="Nama lengkap pemesan"
-                      className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-500 bg-gray-50/50"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-medium text-gray-400">Email:</label>
                     <input
                       type="email"
@@ -1014,11 +1003,10 @@ function BookingContent() {
                   // Generate random booking code
                   const randomCode = 'SMR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
                   
-                  // Insert to Supabase
                   const { error } = await supabase.from('pemesanan').insert({
                     kode_booking: randomCode,
                     jadwal_id: seatSelectionTicket.id,
-                    nama_pelanggan: customerName.trim(),
+                    nama_pelanggan: customerEmail.trim().split('@')[0] || 'Pelanggan',
                     email_pelanggan: customerEmail.trim(),
                     telepon_pelanggan: customerPhone.trim(),
                     nomor_kursi: selectedSeats.map(String),
