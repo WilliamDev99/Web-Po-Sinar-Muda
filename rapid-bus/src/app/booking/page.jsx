@@ -1,13 +1,61 @@
 "use client";
 
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense, useEffect, createContext, useContext } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from '@/utils/supabase';
 import HeaderDropdown from "@/components/HeaderDropdown";
 
+// Context untuk meneruskan tipe bus dan kapasitas kursi ke SeatBtn
+const SeatConfigContext = createContext({ busType: "", capacity: 30 });
+
 // Komponen Helper untuk Ikon Legenda Kursi
-function LegendSeatIcon({ fill, stroke, armrestFill }) {
+function LegendSeatIcon({ fill, stroke, armrestFill, isSleeper }) {
+  if (isSleeper) {
+    return (
+      <div className="w-5 h-5">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          {/* Mattress */}
+          <rect
+            x="6"
+            y="2"
+            width="28"
+            height="36"
+            rx="5"
+            fill={fill}
+            stroke={stroke}
+            strokeWidth="2"
+          />
+          {/* Pillow */}
+          <rect
+            x="10"
+            y="6"
+            width="20"
+            height="7"
+            rx="2"
+            fill={armrestFill}
+            stroke={stroke}
+            strokeWidth="1.5"
+          />
+          {/* Blanket */}
+          <path
+            d="M6 18 L34 18 L34 33 C34 35.8 31.8 38 29 38 L11 38 C8.2 38 6 35.8 6 33 Z"
+            fill={armrestFill}
+            stroke={stroke}
+            strokeWidth="2"
+          />
+          {/* Fold crease of blanket */}
+          <path
+            d="M6 18 Q 20 21, 34 18"
+            stroke={stroke}
+            strokeWidth="1.5"
+            fill="none"
+          />
+        </svg>
+      </div>
+    );
+  }
+
   return (
     <div className="w-5 h-5">
       <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
@@ -54,8 +102,24 @@ function LegendSeatIcon({ fill, stroke, armrestFill }) {
 
 // Komponen Helper untuk Kursi
 function SeatBtn({ id, selected, toggle, bookedGender }) {
+  const { busType, capacity } = useContext(SeatConfigContext);
+  
+  if (capacity && id > capacity) {
+    return <div className="w-10 h-10 md:w-11 md:h-11 invisible shrink-0" />;
+  }
+
   // bookedGender: null (available), 'L' (laki-laki), 'P' (perempuan)
   const isBooked = bookedGender !== null && bookedGender !== undefined;
+  
+  const busTypeLower = busType?.toLowerCase() || "";
+  let isSleeper = false;
+  if (busTypeLower.includes("sleeper")) {
+    isSleeper = true;
+  } else if (busTypeLower.includes("bisnis")) {
+    isSleeper = false;
+  } else {
+    isSleeper = [1, 4, 7].includes(id);
+  }
 
   let cushionFill, stroke, textCol, armrestFill;
 
@@ -92,51 +156,96 @@ function SeatBtn({ id, selected, toggle, bookedGender }) {
       title={isBooked ? `Kursi ${id} - Sudah Dipesan (${bookedGender === 'P' ? 'Perempuan' : 'Laki-laki'})` : `Kursi ${id}`}
       className={`w-10 h-10 md:w-11 md:h-11 relative group transition-all ${isBooked ? 'cursor-not-allowed opacity-80' : 'active:scale-95'}`}
     >
-      <svg
-        viewBox="0 0 40 40"
-        className={`w-full h-full drop-shadow-sm transition-all ${!isBooked ? 'group-hover:drop-shadow' : ''}`}
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M5 30 C5 36, 10 38, 20 38 C30 38, 35 36, 35 30 L35 25 L5 25 Z"
-          fill={cushionFill}
-          stroke={stroke}
-          strokeWidth="2"
-        />
-        <rect
-          x="2"
-          y="10"
-          width="5"
-          height="18"
-          rx="2"
-          fill={armrestFill}
-          stroke={stroke}
-          strokeWidth="2"
-        />
-        <rect
-          x="33"
-          y="10"
-          width="5"
-          height="18"
-          rx="2"
-          fill={armrestFill}
-          stroke={stroke}
-          strokeWidth="2"
-        />
-        <rect
-          x="7"
-          y="4"
-          width="26"
-          height="24"
-          rx="4"
-          fill={cushionFill}
-          stroke={stroke}
-          strokeWidth="2"
-        />
-      </svg>
+      {isSleeper ? (
+        <svg
+          viewBox="0 0 40 40"
+          className={`w-full h-full drop-shadow-sm transition-all ${!isBooked ? 'group-hover:drop-shadow' : ''}`}
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {/* Mattress */}
+          <rect
+            x="6"
+            y="2"
+            width="28"
+            height="36"
+            rx="5"
+            fill={cushionFill}
+            stroke={stroke}
+            strokeWidth="2"
+          />
+          {/* Pillow */}
+          <rect
+            x="10"
+            y="6"
+            width="20"
+            height="7"
+            rx="2"
+            fill={armrestFill}
+            stroke={stroke}
+            strokeWidth="1.5"
+          />
+          {/* Blanket */}
+          <path
+            d="M6 18 L34 18 L34 33 C34 35.8 31.8 38 29 38 L11 38 C8.2 38 6 35.8 6 33 Z"
+            fill={armrestFill}
+            stroke={stroke}
+            strokeWidth="2"
+          />
+          {/* Fold crease of blanket */}
+          <path
+            d="M6 18 Q 20 21, 34 18"
+            stroke={stroke}
+            strokeWidth="1.5"
+            fill="none"
+          />
+        </svg>
+      ) : (
+        <svg
+          viewBox="0 0 40 40"
+          className={`w-full h-full drop-shadow-sm transition-all ${!isBooked ? 'group-hover:drop-shadow' : ''}`}
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M5 30 C5 36, 10 38, 20 38 C30 38, 35 36, 35 30 L35 25 L5 25 Z"
+            fill={cushionFill}
+            stroke={stroke}
+            strokeWidth="2"
+          />
+          <rect
+            x="2"
+            y="10"
+            width="5"
+            height="18"
+            rx="2"
+            fill={armrestFill}
+            stroke={stroke}
+            strokeWidth="2"
+          />
+          <rect
+            x="33"
+            y="10"
+            width="5"
+            height="18"
+            rx="2"
+            fill={armrestFill}
+            stroke={stroke}
+            strokeWidth="2"
+          />
+          <rect
+            x="7"
+            y="4"
+            width="26"
+            height="24"
+            rx="4"
+            fill={cushionFill}
+            stroke={stroke}
+            strokeWidth="2"
+          />
+        </svg>
+      )}
       <span
         className={`absolute inset-0 flex items-center justify-center text-[11px] md:text-xs font-bold ${textCol}`}
-        style={{ marginTop: "-4px" }}
+        style={isSleeper ? { marginTop: "10px" } : { marginTop: "-4px" }}
       >
         {id}
       </span>
@@ -204,6 +313,7 @@ function BookingContent() {
 
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [showDetailKursi, setShowDetailKursi] = useState(false);
+  const [activeDeck, setActiveDeck] = useState("bawah"); // "bawah" | "atas"
   const [step, setStep] = useState("seat"); // 'seat' | 'pickup' | 'checkout' | 'success'
   const [selectedPickup, setSelectedPickup] = useState(null);
   const [showWaNotif, setShowWaNotif] = useState(false);
@@ -225,10 +335,9 @@ function BookingContent() {
     async function fetchBookedSeats() {
       try {
         const { data, error } = await supabase
-          .from('pemesanan')
+          .from('booked_seats')
           .select('nomor_kursi, detail_gender')
-          .eq('jadwal_id', ticketIdParam)
-          .in('status', ['Lunas', 'Menunggu']);
+          .eq('jadwal_id', ticketIdParam);
 
         if (data) {
           const map = {};
@@ -264,12 +373,25 @@ function BookingContent() {
 
   const getSeatPrice = (seatId) => {
     const standardPrice = seatSelectionTicket?.rawPrice || 0;
+    const busTypeLower = seatSelectionTicket?.busType?.toLowerCase() || "";
+    
+    if (busTypeLower.includes("sleeper")) {
+      return standardPrice;
+    }
+    if (busTypeLower.includes("bisnis")) {
+      return standardPrice;
+    }
+    
     if ([1, 4, 7].includes(seatId)) return standardPrice > 0 ? standardPrice + 30000 : 230000;
     if ([2, 3, 5, 6, 8, 9].includes(seatId)) return standardPrice > 0 ? standardPrice : 200000;
     return standardPrice;
   };
 
   const getSeatClass = (seatId) => {
+    const busTypeLower = seatSelectionTicket?.busType?.toLowerCase() || "";
+    if (busTypeLower.includes("sleeper")) return "SLEEPER";
+    if (busTypeLower.includes("bisnis")) return "BISNIS";
+    
     if ([1, 4, 7].includes(seatId)) return "SLEEPER";
     if ([2, 3, 5, 6, 8, 9].includes(seatId)) return "BISNIS";
     return "BISNIS";
@@ -282,6 +404,45 @@ function BookingContent() {
 
   const formatPrice = (num) =>
     `Rp ${num.toLocaleString("id-ID").replace(/,/g, ".")}`;
+
+  const isSleeperBus = seatSelectionTicket?.busType?.toLowerCase().includes("sleeper");
+
+  // Define layout dynamically
+  let seatRows = [];
+
+  if (isSleeperBus) {
+    if (activeDeck === "bawah") {
+      seatRows = [
+        { left: [1], right: [2] },
+        { left: [3], right: [4] },
+        { left: [5], right: [6] },
+        { left: [7], right: [8] },
+        { left: [9], right: [10] },
+        { left: [11], right: [12] },
+      ];
+    } else {
+      seatRows = [
+        { left: [13], right: [14] },
+        { left: [15], right: [16] },
+        { left: [17], right: [18] },
+        { left: [19], right: [20] },
+        { left: [21], right: [22] },
+        { left: [23], right: [24] },
+      ];
+    }
+  } else {
+    // Business bus layout (2-2 config, up to 27 or 30 seats)
+    seatRows = [
+      { left: [1], right: [2, 3] },      // Row 1 (1-2 layout)
+      { left: [4], right: [5, 6] },      // Row 2 (1-2 layout)
+      { left: [7], right: [8, 9] },      // Row 3 (1-2 layout)
+      { left: [10, 11], right: [12, 13] }, // Row 4 (2-2 layout)
+      { left: [14, 15], right: [16, 17] }, // Row 5 (2-2 layout)
+      { left: [18, 19], right: [20, 21] }, // Row 6 (2-2 layout)
+      { left: [24, 25], right: [22, 23] }, // Row 7 (2-2 layout)
+      { left: [26, 27], right: [null, null] } // Row 8 (2-2 layout)
+    ];
+  }
 
   if (isLoadingDB) {
     return (
@@ -354,7 +515,7 @@ function BookingContent() {
       {/* Main Container */}
       <div className="flex-1 w-full md:max-w-md bg-blue-50 relative flex flex-col mx-auto">
         {step === "seat" && (
-          <>
+          <SeatConfigContext.Provider value={{ busType: seatSelectionTicket?.busType, capacity: seatSelectionTicket?.capacity }}>
             {/* Scrollable Content (Seat Selection) */}
             <div className="flex-1 overflow-y-auto pb-28 hide-scrollbar flex flex-col items-center">
               {/* Legend */}
@@ -364,6 +525,7 @@ function BookingContent() {
                     fill="#e2e8f0"
                     stroke="#94a3b8"
                     armrestFill="#cbd5e1"
+                    isSleeper={isSleeperBus}
                   />
                   <span className="text-[10px] font-medium text-gray-500">
                     Laki - Laki
@@ -374,6 +536,7 @@ function BookingContent() {
                     fill="#fbcfe8"
                     stroke="#f472b6"
                     armrestFill="#f9a8d4"
+                    isSleeper={isSleeperBus}
                   />
                   <span className="text-[10px] font-medium text-gray-500">
                     Perempuan
@@ -384,6 +547,7 @@ function BookingContent() {
                     fill="#ffffff"
                     stroke="#d1d5db"
                     armrestFill="#f3f4f6"
+                    isSleeper={isSleeperBus}
                   />
                   <span className="text-[10px] font-medium text-gray-500">
                     Tersedia
@@ -394,12 +558,53 @@ function BookingContent() {
                     fill="#4b5563"
                     stroke="#4b5563"
                     armrestFill="#374151"
+                    isSleeper={isSleeperBus}
                   />
                   <span className="text-[10px] font-medium text-gray-500">
                     Dipilih
                   </span>
                 </div>
+                {/* Hanya tampilkan info kasur tambahan jika busnya tipe campuran (Combi) dan bukan murni Sleeper */}
+                {!isSleeperBus && [1, 4, 7].some(id => getSeatClass(id) === "SLEEPER") && (
+                  <div className="flex items-center gap-1.5">
+                    <LegendSeatIcon
+                      fill="#ffffff"
+                      stroke="#d1d5db"
+                      armrestFill="#f3f4f6"
+                      isSleeper={true}
+                    />
+                    <span className="text-[10px] font-medium text-gray-500">
+                      Sleeper (Kasur)
+                    </span>
+                  </div>
+                )}
               </div>
+
+              {/* Deck Selector for Sleeper Bus */}
+              {isSleeperBus && (
+                <div className="flex bg-gray-100 p-1 rounded-xl gap-1 mt-4 mb-2 w-full max-w-[280px]">
+                  <button
+                    onClick={() => setActiveDeck("bawah")}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                      activeDeck === "bawah"
+                        ? "bg-[#1f75b8] text-white shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    Dek Bawah (Lantai 1)
+                  </button>
+                  <button
+                    onClick={() => setActiveDeck("atas")}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                      activeDeck === "atas"
+                        ? "bg-[#1f75b8] text-white shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    Dek Atas (Lantai 2)
+                  </button>
+                </div>
+              )}
 
               {/* Bus Interior Box */}
               <div className="bg-white mx-4 mt-2 rounded-t-3xl rounded-b-lg shadow-sm border border-gray-100 w-full max-w-[320px] p-6 pb-8 relative">
@@ -420,208 +625,45 @@ function BookingContent() {
 
                 {/* Seat Grid */}
                 <div className="flex flex-col gap-4">
-                  {/* Row 1 */}
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={1}
-                        selected={selectedSeats.includes(1)}
-                        toggle={() => toggleSeat(1)}
-                        bookedGender={bookedSeatsMap[1]}
-                      />
-                      <div className="w-10 md:w-11"></div>
+                  {seatRows.map((row, idx) => (
+                    <div key={idx} className="flex justify-between items-center">
+                      {/* Left Column */}
+                      <div className="flex gap-2">
+                        {row.left.map((seatId) => {
+                          if (seatId === null) return <div key={`empty-l-${idx}`} className="w-10 h-10 md:w-11 md:h-11 invisible shrink-0" />;
+                          return (
+                            <SeatBtn
+                              key={seatId}
+                              id={seatId}
+                              selected={selectedSeats.includes(seatId)}
+                              toggle={() => toggleSeat(seatId)}
+                              bookedGender={bookedSeatsMap[seatId]}
+                            />
+                          );
+                        })}
+                        {/* Spacing alignment for 1-seat columns in 2-2 layout */}
+                        {!isSleeperBus && row.left.length === 1 && (
+                          <div className="w-10 md:w-11 shrink-0" />
+                        )}
+                      </div>
+
+                      {/* Right Column */}
+                      <div className="flex gap-2">
+                        {row.right.map((seatId) => {
+                          if (seatId === null) return <div key={`empty-r-${idx}`} className="w-10 h-10 md:w-11 md:h-11 invisible shrink-0" />;
+                          return (
+                            <SeatBtn
+                              key={seatId}
+                              id={seatId}
+                              selected={selectedSeats.includes(seatId)}
+                              toggle={() => toggleSeat(seatId)}
+                              bookedGender={bookedSeatsMap[seatId]}
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={2}
-                        selected={selectedSeats.includes(2)}
-                        toggle={() => toggleSeat(2)}
-                        bookedGender={bookedSeatsMap[2]}
-                      />
-                      <SeatBtn
-                        id={3}
-                        selected={selectedSeats.includes(3)}
-                        toggle={() => toggleSeat(3)}
-                        bookedGender={bookedSeatsMap[3]}
-                      />
-                    </div>
-                  </div>
-                  {/* Row 2 */}
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={4}
-                        selected={selectedSeats.includes(4)}
-                        toggle={() => toggleSeat(4)}
-                        bookedGender={bookedSeatsMap[4]}
-                      />
-                      <div className="w-10 md:w-11"></div>
-                    </div>
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={5}
-                        selected={selectedSeats.includes(5)}
-                        toggle={() => toggleSeat(5)}
-                        bookedGender={bookedSeatsMap[5]}
-                      />
-                      <SeatBtn
-                        id={6}
-                        selected={selectedSeats.includes(6)}
-                        toggle={() => toggleSeat(6)}
-                        bookedGender={bookedSeatsMap[6]}
-                      />
-                    </div>
-                  </div>
-                  {/* Row 3 */}
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={7}
-                        selected={selectedSeats.includes(7)}
-                        toggle={() => toggleSeat(7)}
-                        bookedGender={bookedSeatsMap[7]}
-                      />
-                      <div className="w-10 md:w-11"></div>
-                    </div>
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={8}
-                        selected={selectedSeats.includes(8)}
-                        toggle={() => toggleSeat(8)}
-                        bookedGender={bookedSeatsMap[8]}
-                      />
-                      <SeatBtn
-                        id={9}
-                        selected={selectedSeats.includes(9)}
-                        toggle={() => toggleSeat(9)}
-                        bookedGender={bookedSeatsMap[9]}
-                      />
-                    </div>
-                  </div>
-                  {/* Row 4 (Starts 2x2) */}
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={10}
-                        selected={selectedSeats.includes(10)}
-                        toggle={() => toggleSeat(10)}
-                        bookedGender={bookedSeatsMap[10]}
-                      />
-                      <SeatBtn
-                        id={11}
-                        selected={selectedSeats.includes(11)}
-                        toggle={() => toggleSeat(11)}
-                        bookedGender={bookedSeatsMap[11]}
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={12}
-                        selected={selectedSeats.includes(12)}
-                        toggle={() => toggleSeat(12)}
-                        bookedGender={bookedSeatsMap[12]}
-                      />
-                      <SeatBtn
-                        id={13}
-                        selected={selectedSeats.includes(13)}
-                        toggle={() => toggleSeat(13)}
-                        bookedGender={bookedSeatsMap[13]}
-                      />
-                    </div>
-                  </div>
-                  {/* Row 5 */}
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={14}
-                        selected={selectedSeats.includes(14)}
-                        toggle={() => toggleSeat(14)}
-                        bookedGender={bookedSeatsMap[14]}
-                      />
-                      <SeatBtn
-                        id={15}
-                        selected={selectedSeats.includes(15)}
-                        toggle={() => toggleSeat(15)}
-                        bookedGender={bookedSeatsMap[15]}
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={16}
-                        selected={selectedSeats.includes(16)}
-                        toggle={() => toggleSeat(16)}
-                        bookedGender={bookedSeatsMap[16]}
-                      />
-                      <SeatBtn
-                        id={17}
-                        selected={selectedSeats.includes(17)}
-                        toggle={() => toggleSeat(17)}
-                        bookedGender={bookedSeatsMap[17]}
-                      />
-                    </div>
-                  </div>
-                  {/* Row 6 */}
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={18}
-                        selected={selectedSeats.includes(18)}
-                        toggle={() => toggleSeat(18)}
-                        bookedGender={bookedSeatsMap[18]}
-                      />
-                      <SeatBtn
-                        id={19}
-                        selected={selectedSeats.includes(19)}
-                        toggle={() => toggleSeat(19)}
-                        bookedGender={bookedSeatsMap[19]}
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={20}
-                        selected={selectedSeats.includes(20)}
-                        toggle={() => toggleSeat(20)}
-                        bookedGender={bookedSeatsMap[20]}
-                      />
-                      <SeatBtn
-                        id={21}
-                        selected={selectedSeats.includes(21)}
-                        toggle={() => toggleSeat(21)}
-                        bookedGender={bookedSeatsMap[21]}
-                      />
-                    </div>
-                  </div>
-                  {/* Row 7 */}
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={24}
-                        selected={selectedSeats.includes(24)}
-                        toggle={() => toggleSeat(24)}
-                        bookedGender={bookedSeatsMap[24]}
-                      />
-                      <SeatBtn
-                        id={25}
-                        selected={selectedSeats.includes(25)}
-                        toggle={() => toggleSeat(25)}
-                        bookedGender={bookedSeatsMap[25]}
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <SeatBtn
-                        id={22}
-                        selected={selectedSeats.includes(22)}
-                        toggle={() => toggleSeat(22)}
-                        bookedGender={bookedSeatsMap[22]}
-                      />
-                      <SeatBtn
-                        id={23}
-                        selected={selectedSeats.includes(23)}
-                        toggle={() => toggleSeat(23)}
-                        bookedGender={bookedSeatsMap[23]}
-                      />
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -715,7 +757,7 @@ function BookingContent() {
                 Lanjutkan
               </button>
             </div>
-          </>
+          </SeatConfigContext.Provider>
         )}
 
         {step === "pickup" && (
@@ -914,32 +956,6 @@ function BookingContent() {
                   </div>
                 </div>
               </div>
-
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
-                <div className="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
-                    <span className="material-symbols-outlined text-[18px]">
-                      mail
-                    </span>
-                  </div>
-                  <h4 className="font-bold text-lg text-[#334155]">
-                    Detail Kontak
-                  </h4>
-                </div>
-                <div className="flex flex-col gap-3">
-                  <input
-                    type="email"
-                    placeholder="will.aja199@gmail.com"
-                    className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-500 bg-gray-50/50"
-                  />
-                  <input
-                    type="tel"
-                    placeholder="Mobile Number"
-                    className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-500 bg-gray-50/50"
-                  />
-                </div>
-              </div>
-
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                 <h4 className="font-bold text-lg text-[#334155] mb-4 border-b border-gray-100 pb-3">
                   Detail Perjalanan
@@ -1017,6 +1033,15 @@ function BookingContent() {
                   if (error) {
                     alert("Gagal melakukan pemesanan: " + error.message);
                     return;
+                  }
+
+                  // Simpan kode booking ke localStorage agar muncul di halaman Tiketku
+                  if (typeof window !== "undefined") {
+                    const existingBookings = JSON.parse(localStorage.getItem("my_bookings") || "[]");
+                    if (!existingBookings.includes(randomCode)) {
+                      existingBookings.push(randomCode);
+                      localStorage.setItem("my_bookings", JSON.stringify(existingBookings));
+                    }
                   }
 
                   setStep("success");
