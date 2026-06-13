@@ -123,7 +123,11 @@ export default function MyTicketsPage() {
 
   // Map database tickets to UI format
   const mappedTickets = dbTickets.map(ticket => {
-    const isPast = ticket.jadwal.tanggal_berangkat < todayStr;
+    // Jika tiket baru saja dibuat hari ini, tampilkan di "Tiket Aktif" untuk memudahkan pengujian/testing
+    const createdDateStr = ticket.created_at ? new Date(ticket.created_at).toISOString().split('T')[0] : '';
+    const isCreatedToday = createdDateStr === todayStr;
+    const isPast = ticket.jadwal.tanggal_berangkat < todayStr && !isCreatedToday;
+    
     let statusText = "";
     if (ticket.status === "Dibatalkan") {
       statusText = "Dibatalkan";
