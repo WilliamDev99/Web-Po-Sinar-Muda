@@ -341,7 +341,7 @@ function SearchResults() {
                   <span className="text-sm font-normal font-mono">{errorMessage}</span>
                 </div>
               ) : isLoadingTickets ? (
-                <div className="text-white text-center py-10">Mencari jadwal dari database...</div>
+                <div className="text-white text-center py-10">Mencari jadwal...</div>
               ) : dbTickets.length === 0 ? (
                 <div className="text-white text-center py-10 font-bold text-lg">Jadwal tidak ditemukan.</div>
               ) : dbTickets.map((ticket) => (
