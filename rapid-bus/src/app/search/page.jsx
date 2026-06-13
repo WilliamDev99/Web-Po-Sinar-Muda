@@ -43,6 +43,7 @@ function SearchResults() {
             rute!inner (kota_asal, kota_tujuan, estimasi_waktu),
             armada!inner (nama_kelas, total_kursi, fasilitas)
           `)
+          .eq('tanggal_berangkat', date)
           .ilike('rute.kota_asal', `%${from}%`)
           .ilike('rute.kota_tujuan', `%${to}%`);
         
@@ -124,7 +125,7 @@ function SearchResults() {
       }
     }
     fetchJadwal();
-  }, [from, to]);
+  }, [from, to, date]);
 
   // State untuk Drag to Scroll (Date Picker)
   const scrollRef = React.useRef(null);
@@ -332,7 +333,7 @@ function SearchResults() {
               ) : isLoadingTickets ? (
                 <div className="text-white text-center py-10">Mencari jadwal dari database...</div>
               ) : dbTickets.length === 0 ? (
-                <div className="text-white text-center py-10">Tidak ada jadwal ditemukan untuk rute ini.</div>
+                <div className="text-white text-center py-10 font-bold text-lg">Jadwal tidak ditemukan.</div>
               ) : dbTickets.map((ticket) => (
                 <div key={ticket.id} className="clay-card p-4 md:p-6">
                   {/* Desktop Layout Wrapper */}
