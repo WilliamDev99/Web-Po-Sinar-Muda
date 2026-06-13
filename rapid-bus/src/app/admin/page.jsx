@@ -186,7 +186,6 @@ export default function AdminDashboardPage() {
               <thead>
                 <tr className="bg-gray-50/50">
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Kode Booking</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Pelanggan</th>
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Rute & Tanggal</th>
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Aksi</th>
@@ -195,14 +194,14 @@ export default function AdminDashboardPage() {
               <tbody className="divide-y divide-gray-100">
                 {isLoading ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
                       <div className="w-6 h-6 border-2 border-[#1f75b8] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
                       Memuat data pemesanan...
                     </td>
                   </tr>
                 ) : recentBookings.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-8 text-center text-gray-500 font-medium">
+                    <td colSpan="4" className="px-6 py-8 text-center text-gray-500 font-medium">
                       Belum ada pemesanan tiket.
                     </td>
                   </tr>
@@ -212,14 +211,6 @@ export default function AdminDashboardPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-mono text-sm font-bold text-gray-800">{booking.id}</div>
                         <div className="text-xs text-gray-500 mt-1">{booking.seats} ({booking.price})</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 text-[#1f75b8] flex items-center justify-center font-bold text-xs uppercase">
-                            {booking.name.charAt(0)}
-                          </div>
-                          <span className="text-sm font-medium text-gray-800">{booking.name}</span>
-                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-800 font-medium">{booking.route}</div>
@@ -327,21 +318,15 @@ export default function AdminDashboardPage() {
                 <span className="font-mono text-lg font-bold text-gray-900">{selectedBooking.id}</span>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Pelanggan</span>
-                  <span className="text-sm font-semibold text-gray-800">{selectedBooking.name}</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Status</span>
-                  <span className={`w-fit px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full
-                    ${selectedBooking.status === 'Lunas' ? 'bg-green-100 text-green-700' : 
-                      selectedBooking.status === 'Menunggu' ? 'bg-yellow-100 text-yellow-700' : 
-                      'bg-red-100 text-red-700'}
-                  `}>
-                    {selectedBooking.status}
-                  </span>
-                </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Status</span>
+                <span className={`w-fit px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full
+                  ${selectedBooking.status === 'Lunas' ? 'bg-green-100 text-green-700' : 
+                    selectedBooking.status === 'Menunggu' ? 'bg-yellow-100 text-yellow-700' : 
+                    'bg-red-100 text-red-700'}
+                `}>
+                  {selectedBooking.status}
+                </span>
               </div>
 
               <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex flex-col gap-3">
