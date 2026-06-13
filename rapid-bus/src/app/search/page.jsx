@@ -63,7 +63,17 @@ function SearchResults() {
             return map[city.toLowerCase()] || city.substring(0, 3).toUpperCase();
           };
 
-          const formatted = data.map(j => {
+          // Saring jadwal yang sudah lewat berdasarkan zona waktu WITA (Asia/Makassar)
+          const todayWitaStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Makassar', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+          const timeWitaStr = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Makassar', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date());
+
+          const activeSchedules = data.filter(j => {
+            if (j.tanggal_berangkat < todayWitaStr) return false;
+            if (j.tanggal_berangkat === todayWitaStr && j.waktu_berangkat < timeWitaStr) return false;
+            return true;
+          });
+
+          const formatted = activeSchedules.map(j => {
             const asal = getAbbr(j.rute.kota_asal);
             const tujuan = getAbbr(j.rute.kota_tujuan);
             const kelas = j.armada.nama_kelas.toUpperCase().replace('KELAS ', '');
